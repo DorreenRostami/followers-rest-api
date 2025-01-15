@@ -50,6 +50,4 @@ class User:
         self.followers.discard(other_user.user_id)
         self.following.discard(other_user.user_id)
         return True
-    
-
         

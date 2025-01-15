@@ -119,7 +119,7 @@ def get_follow_requests_endpoint():
 
     return jsonify({'requests': list(users[user_id].get_follow_requests())}), 200
 
-@app.route('/folllowers_list', methods=['GET'])
+@app.route('/followers_list', methods=['GET'])
 def get_followers_endpoint():
     req = request.json
     if not req or 'user_id' not in req:
@@ -129,9 +129,19 @@ def get_followers_endpoint():
     if user_id not in users:
         return jsonify({'message': 'User not found'}), 404
     
-    return jsonify({'followers': list(users[user_id].get_followers())}), 200
+    this_user = users[user_id]
+    followers = this_user.get_followers()
+    followers_with_birthdates = []
 
-@app.route('/folllowing_list', methods=['GET'])
+    for follower_id in followers:
+        follower_info = {'user_id': follower_id}
+        if follower_id in this_user.get_following():
+            follower_info['birthdate'] = users[follower_id].birthdate
+        followers_with_birthdates.append(follower_info)
+    
+    return jsonify({'followers': followers_with_birthdates}), 200
+
+@app.route('/following_list', methods=['GET'])
 def get_following_endpoint():
     req = request.json
     if not req or 'user_id' not in req:
@@ -141,7 +151,17 @@ def get_following_endpoint():
     if user_id not in users:
         return jsonify({'message': 'User not found'}), 404
     
-    return jsonify({'following': list(users[user_id].get_following())}), 200
+    this_user = users[user_id]
+    following = this_user.get_following()
+    following_with_birthdates = []
+
+    for following_id in following:
+        following_info = {'user_id': following_id}
+        if following_id in this_user.get_followers():
+            following_info['birthdate'] = users[following_info].birthdate
+        following_with_birthdates.append(following_info)
+    
+    return jsonify({'following': following_with_birthdates}), 200
 
 @app.route('/blocked_list', methods=['GET'])
 def get_blocked_endpoint():
