@@ -107,14 +107,10 @@ def block_user_endpoint():
     if not req or 'blocker' not in req or 'blocked' not in req:
         return jsonify({'message': 'Missing blocker or blocked'}), 400
     
-    blocker_id = req.get('blocker')
-    blocked_id = req.get('blocked')
-
-    if blocker_id not in users or blocked_id not in users:
+    blocker = users.get(req['blocker'])
+    blocked = users.get(req['blocked'])
+    if not blocker or not blocked:
         return jsonify({'message': 'User not found'}), 404
-
-    blocker = users[blocker_id]
-    blocked = users[blocked_id]
 
     with lock:
         if blocker.block_user(blocked):
@@ -122,17 +118,36 @@ def block_user_endpoint():
         else :
             return jsonify({'message': f'Forbidden: Users can\'t block themselves'}), 403
 
+@app.route('/unblock_user', methods=['POST'])
+def unblock_user_endpoint():
+    req = request.json
+    if not req or 'unblocker' not in req or 'unblocked' not in req:
+        return jsonify({'message': 'Missing unblocker or unblocked'}), 400
+    
+    unblocker = users.get(req['unblocker'])
+    unblocked = users.get(req['unblocked'])
+    if not unblocker or not unblocked:
+        return jsonify({'message': 'User not found'}), 404
+
+    with lock:
+        res = unblocker.unblock_user(unblocked)
+        if res == 1:
+            return jsonify({'message': f'{unblocker.user_id} has unblocked {unblocked.user_id}'}), 200
+        elif res == -1:
+            return jsonify({'message': f'Forbidden: Users can\'t unblock themselves'}), 403
+        return jsonify({'message': f'{unblocker.user_id} has not blocked {unblocked.user_id}'}), 400 #res=0
+
 @app.route('/follow_requests_list', methods=['GET'])
 def get_follow_requests_endpoint():
     req = request.json
     if not req or 'user_id' not in req:
         return jsonify({'message': 'Missing user_id'}), 400
     
-    user_id = req.get('user_id')
-    if user_id not in users:
+    this_user = users.get(req['user_id'])
+    if not this_user:
         return jsonify({'message': 'User not found'}), 404
 
-    return jsonify({'requests': list(users[user_id].follow_requests)}), 200
+    return jsonify({'requests': list(this_user.follow_requests)}), 200
 
 @app.route('/followers_list', methods=['GET'])
 def get_followers_endpoint():
@@ -140,11 +155,10 @@ def get_followers_endpoint():
     if not req or 'user_id' not in req:
         return jsonify({'message': 'Missing user_id'}), 400
     
-    user_id = req.get('user_id')
-    if user_id not in users:
+    this_user = users.get(req['user_id'])
+    if not this_user:
         return jsonify({'message': 'User not found'}), 404
     
-    this_user = users[user_id]
     followers = this_user.followers
     followers_with_birthdates = []
 
@@ -162,11 +176,10 @@ def get_following_endpoint():
     if not req or 'user_id' not in req:
         return jsonify({'message': 'Missing user_id'}), 400
     
-    user_id = req.get('user_id')
-    if user_id not in users:
+    this_user = users.get(req['user_id'])
+    if not this_user:
         return jsonify({'message': 'User not found'}), 404
-    
-    this_user = users[user_id]
+
     following = this_user.following
     following_with_birthdates = []
 
@@ -184,11 +197,11 @@ def get_blocked_endpoint():
     if not req or 'user_id' not in req:
         return jsonify({'message': 'Missing user_id'}), 400
     
-    user_id = req.get('user_id')
-    if user_id not in users:
+    this_user = users.get(req['user_id'])
+    if not this_user:
         return jsonify({'message': 'User not found'}), 404
     
-    return jsonify({'blocked': list(users[user_id].blocked_users)}), 200
+    return jsonify({'blocked': list(this_user.blocked_users)}), 200
 
 if __name__ == '__main__':
     app.run()

@@ -52,3 +52,10 @@ class User:
         other_user.following.discard(self.user_id)
         return True
         
+    def unblock_user(self, other_user):
+        if self.user_id == other_user.user_id:
+            return -1
+        if other_user.user_id not in self.blocked_users:
+            return 0
+        self.blocked_users.remove(other_user.user_id)
+        return 1
