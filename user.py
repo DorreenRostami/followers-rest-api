@@ -9,6 +9,18 @@ class User:
         self.following = set()
         self.blocked_users = set()
 
+    def get_follow_requests(self):
+        return self.follow_requests
+    
+    def get_followers(self):
+        return self.followers
+    
+    def get_following(self):
+        return self.following
+    
+    def get_blocked_users(self):
+        return self.blocked_users
+
     def send_follow_request(self, other_user):
         if self.user_id == other_user.user_id: 
             return 0
@@ -38,4 +50,6 @@ class User:
         self.followers.discard(other_user.user_id)
         self.following.discard(other_user.user_id)
         return True
+    
+
         
