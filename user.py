@@ -1,5 +1,7 @@
 import uuid
 
+from flask.config import T
+
 class User:
     def __init__(self, user_id=None):
         self.user_id = user_id or str(uuid.uuid4())
@@ -28,6 +30,14 @@ class User:
         if accept:
             self.followers.add(other_user.user_id)
             other_user.following.add(self.user_id)
+        return True
+    
+    def unfollow_user(self, other_user):
+        if other_user.user_id not in self.following and self.user_id not in other_user.follow_requests:
+            return False
+        self.following.discard(other_user.user_id)
+        other_user.followers.discard(self.user_id)
+        other_user.follow_requests.discard(self.user_id)
         return True
     
     def block_user(self, other_user):

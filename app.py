@@ -22,7 +22,6 @@ def create_user_endpoint():
     else:
         return jsonify({'error': 'Invalid content type, application/json expected'}), 400
     
-
 @app.route('/users', methods=['GET'])
 def get_users_endpoint():
     return jsonify({'user_ids': list(users.keys())}), 200
@@ -50,7 +49,6 @@ def send_follow_request_endpoint():
         elif res == -3:
             return jsonify({'message': f'Forbidden: {sender.user_id} has blocked {receiver.user_id} and cannot follow them'}), 403
         return jsonify({'message': f'Follow request sent from {sender.user_id} to {receiver.user_id}'}), 200 #res=1
-        
     
 @app.route('/accept_follow_request', methods=['POST'])
 def accept_follow_request_endpoint():
@@ -85,6 +83,23 @@ def deny_follow_request_endpoint():
         if this_user.handle_follow_request(potential_follower, False):
             return jsonify({'message': f'{potential_follower.user_id}\'s follow request removed from {this_user.user_id}\'s requests'}), 200
         return jsonify({'message': f'{potential_follower.user_id} has not sent a request to follow {this_user.user_id}'}), 404
+
+@app.route('/unfollow_user', methods=['POST'])
+def unfollow_user_endpoint():
+    req = request.json
+    if not req or 'unfollower' not in req or 'unfollowed' not in req:
+        return jsonify({'message': 'Missing unfollower or unfollowed'}), 400
+
+    unfollower = users.get(req['unfollower'])
+    unfollowed = users.get(req['unfollowed'])
+
+    if not unfollower or not unfollowed:
+        return jsonify({'message': 'User not found'}), 404
+
+    with lock:
+        if unfollower.unfollow_user(unfollowed):
+            return jsonify({'message': f'{unfollower.user_id} has unfollowed {unfollowed.user_id}'}), 200
+        return jsonify({'message': f'{unfollower.user_id} is not following/has not sent a follow request to {unfollowed.user_id}'}), 400
     
 @app.route('/block_user', methods=['POST'])
 def block_user_endpoint():
