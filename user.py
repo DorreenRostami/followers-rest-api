@@ -10,18 +10,32 @@ class User:
         self.blocked_users = set()
 
     def send_follow_request(self, other_user):
-        if self.user_id in other_user.blocked_users:
+        if self.user_id == other_user.user_id: 
             return 0
-        if self.user_id in other_user.followers:
+        if self.user_id in other_user.blocked_users:
             return -1
+        if self.user_id in other_user.followers:
+            return -2
+        if other_user.user_id in self.blocked_users:
+            return -3
         other_user.follow_requests.add(self.user_id)
         return 1
     
-    def accept_follow_request(self, other_user):
-        if other_user.user_id not in self.follow_requests:
+    def handle_follow_request(self, other_user, accept=True):
+        if self.user_id == other_user.user_id or other_user.user_id not in self.follow_requests:
             return False
         self.follow_requests.remove(other_user.user_id)
-        self.followers.add(other_user.user_id)
-        other_user.following.add(self.user_id)
+        if accept:
+            self.followers.add(other_user.user_id)
+            other_user.following.add(self.user_id)
+        return True
+    
+    def block_user(self, other_user):
+        if self.user_id == other_user.user_id:
+            return False
+        self.blocked_users.add(other_user.user_id)
+        self.follow_requests.discard(other_user.user_id)
+        self.followers.discard(other_user.user_id)
+        self.following.discard(other_user.user_id)
         return True
         
