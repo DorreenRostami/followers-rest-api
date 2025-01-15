@@ -9,6 +9,12 @@ class User:
         self.following = set()
         self.blocked_users = set()
 
+    def get_user_id(self):
+        return self.user_id
+    
+    def get_birthdate(self):
+        return self.birthdate
+    
     def get_follow_requests(self):
         return self.follow_requests
     
