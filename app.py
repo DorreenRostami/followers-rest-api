@@ -117,7 +117,7 @@ def get_follow_requests_endpoint():
     if user_id not in users:
         return jsonify({'message': 'User not found'}), 404
 
-    return jsonify({'requests': list(users[user_id].get_follow_requests())}), 200
+    return jsonify({'requests': list(users[user_id].follow_requests)}), 200
 
 @app.route('/followers_list', methods=['GET'])
 def get_followers_endpoint():
@@ -130,12 +130,12 @@ def get_followers_endpoint():
         return jsonify({'message': 'User not found'}), 404
     
     this_user = users[user_id]
-    followers = this_user.get_followers()
+    followers = this_user.followers
     followers_with_birthdates = []
 
     for follower_id in followers:
         follower_info = {'user_id': follower_id}
-        if follower_id in this_user.get_following():
+        if follower_id in this_user.following:
             follower_info['birthdate'] = users[follower_id].birthdate
         followers_with_birthdates.append(follower_info)
     
@@ -152,13 +152,13 @@ def get_following_endpoint():
         return jsonify({'message': 'User not found'}), 404
     
     this_user = users[user_id]
-    following = this_user.get_following()
+    following = this_user.following
     following_with_birthdates = []
 
     for following_id in following:
         following_info = {'user_id': following_id}
-        if following_id in this_user.get_followers():
-            following_info['birthdate'] = users[following_info].birthdate
+        if following_id in this_user.followers:
+            following_info['birthdate'] = users[following_id].birthdate
         following_with_birthdates.append(following_info)
     
     return jsonify({'following': following_with_birthdates}), 200
@@ -173,7 +173,7 @@ def get_blocked_endpoint():
     if user_id not in users:
         return jsonify({'message': 'User not found'}), 404
     
-    return jsonify({'blocked': list(users[user_id].get_blocked_users())}), 200
+    return jsonify({'blocked': list(users[user_id].blocked_users)}), 200
 
 if __name__ == '__main__':
     app.run()
